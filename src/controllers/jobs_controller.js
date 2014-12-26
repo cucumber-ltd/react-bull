@@ -1,5 +1,7 @@
 /** @jsx React.DOM */
 module.exports = function(React) {
+  var es;
+
   return function (category, config) {
     var Jobs = require('../components/jobs')(React)
     var RedisHandler = require('../redis_handler')
@@ -26,6 +28,15 @@ module.exports = function(React) {
 
     if (config.poll) {
       setInterval(this.fetch.bind(this), config.poll)
+    }
+
+    if (config.sse) {
+      if (!es) es = new EventSource("/sse");
+      es.addEventListener(category, function (event) {
+        var data = JSON.parse(event.data);
+        jobs = data.keys;
+        UI.setProps({ jobs: jobs });
+      });
     }
   }
 }
